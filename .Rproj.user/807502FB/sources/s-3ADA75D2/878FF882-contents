@@ -9,17 +9,17 @@ p <- k
 
 prior_cert <- c(1e-5,1e2)
 
-step_size <- 10
-n_steps <- 30
-n_reps <- 20
-n_init <- 150
+step_size <- 20
+n_steps <- 50
+n_reps <- 100
+n_init <- 200
 
 
-set.seed(42)
+set.seed(12345)
 B <- diag(k)
-B0 <- B  + matrix(rnorm(k*p,0,0.2),p,k)
+B0 <- B  #+ matrix(rnorm(k*p,0,0.2),p,k)
 G <- g_model1(k)
-file_names_base <- "./Res/Model1_noisy0.2B0_"
+file_names_base <- "./Res/Model1_B0_"
 
 Omega <- G$Omega
 Sigma <- G$Sigma
@@ -36,19 +36,15 @@ lambda <- k
 
 # object with results
 MGIG_random_cert <- data.frame(matrix(NA, nrow = n_reps, ncol = n_steps+1))
-MGIG_active_uncert <- MGIG_random_uncert <- MGIG_active_cert <- MGIG_random_cert
+MGIG_random_uncert <- MGIG_random_cert
 
 Wishart_random_cert <- data.frame(matrix(NA, nrow = n_reps, ncol = n_steps+1))
 Wishart_random_uncert <- Wishart_random_cert
 
-no_exp <- MGIG_random_cert
-
-
 ### place to save results
-prior_class <- c("MGIG_AL_","MGIG_rand_","Wishart_rand_")
+prior_class <- c("MGIG_rand_","Wishart_rand_")
 simu_designs <- as.matrix( expand.grid(prior_class,prior_cert))
 design_name <- apply( as.matrix(simu_designs),1,paste0,collapse = "")
-design_name <- c(design_name, "no_exp")
 file_names_last <- paste0("_k",k,".csv" )
 all_file_name <- paste0(file_names_base,design_name,file_names_last)
 
@@ -64,28 +60,35 @@ for(i_rep in 1:n_reps){
   cat("Round:", i_rep,"Initial estimation\n")
   
   MAP_Omega_wrc <- getMAP_Omega_Wishart(Y_init, X_init, B0 %*% Sigma, phi, lambda, Lambda1)
+  MAP_Omega_wrc_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_init, B0 %*% Sigma, phi, lambda, Lambda1)
   MAP_Omega_wru <- getMAP_Omega_Wishart(Y_init, X_init, B0 %*% Sigma, phi, lambda, Lambda2)
+  MAP_Omega_wru_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_init, B0 %*% Sigma, phi, lambda, Lambda2)
   
-  MAP_Omega_mrc <- MAP_Omega_mac <- getMAP_Omega_MGIG(Y_init, X_init, B0, phi, psi,lambda, Lambda1)
-  MAP_Omega_mru <- MAP_Omega_mau <- getMAP_Omega_MGIG(Y_init, X_init, B0, phi, psi,lambda, Lambda2)
   
-  MAP_B_mac <- getMAP_B_MGIG(Y_init, X_init, B0, Lambda1, MAP_Omega_mac)
-  MAP_B_mau <- getMAP_B_MGIG(Y_init, X_init, B0, Lambda2,MAP_Omega_mau)
+  MAP_Omega_mrc <- getMAP_Omega_MGIG(Y_init, X_init, B0, phi, psi,lambda, Lambda1)
+  MAP_Omega_mrc_noexp <- getMAP_Omega_MGIG(Y_no_exp, 0*X_init, B0, phi, psi,lambda, Lambda1)
+  MAP_Omega_mru <- getMAP_Omega_MGIG(Y_init, X_init, B0, phi, psi,lambda, Lambda2)
+  MAP_Omega_mru_noexp <- getMAP_Omega_MGIG(Y_no_exp, 0*X_init, B0, phi, psi,lambda, Lambda2)
   
-  MAP_Omega_nex <- getMAP_Omega_Wishart(Y_no_exp, 0*X_init, B0 %*% Sigma, phi, lambda, Lambda2)
+
+  
+  
+  #MAP_Omega_nex <- getMAP_Omega_Wishart(Y_no_exp, 0*X_init, B0 %*% Sigma, phi, lambda, Lambda2)
   #MAP_Omega_nex <- solve(cov(Y_no_exp))
   #Lambda_hat_design <- Lambda_hat
   Y_r <- Y_mac  <- Y_mau <- Y_init
   X_r <- X_mac  <- X_mau <- X_init
   
   
-  MGIG_random_cert[i_rep,1] <- MGIG_active_cert[i_rep,1] <- CARlasso:::stein_loss(Omega,MAP_Omega_mac)
-  MGIG_random_uncert[i_rep,1] <- MGIG_active_uncert[i_rep,1] <- CARlasso:::stein_loss(Omega,MAP_Omega_mau)
+  MGIG_random_cert[i_rep,1] <- log( CARlasso:::stein_loss(Omega,MAP_Omega_mrc) ) - 
+    log(CARlasso:::stein_loss(Omega,MAP_Omega_mrc_noexp))
+  MGIG_random_uncert[i_rep,1] <- log( CARlasso:::stein_loss(Omega,MAP_Omega_mru) ) - 
+    log(CARlasso:::stein_loss(Omega,MAP_Omega_mru_noexp))
   
-  Wishart_random_cert[i_rep,1]  <- CARlasso:::stein_loss(Omega,MAP_Omega_wrc)
-  Wishart_random_uncert[i_rep,1] <- CARlasso:::stein_loss(Omega,MAP_Omega_wru)
-  
-  no_exp[i_rep,1] <- CARlasso:::stein_loss(Omega,MAP_Omega_nex)
+  Wishart_random_cert[i_rep,1]  <- log( CARlasso:::stein_loss(Omega,MAP_Omega_wrc) ) - 
+    log( CARlasso:::stein_loss(Omega,MAP_Omega_wrc_noexp) )
+  Wishart_random_uncert[i_rep,1] <- log( CARlasso:::stein_loss(Omega,MAP_Omega_wru) ) - 
+    log( CARlasso:::stein_loss(Omega,MAP_Omega_wru_noexp) )
   
   
   
@@ -105,27 +108,29 @@ for(i_rep in 1:n_reps){
     Y_r <- rbind(Y_r, Y_rand_temp)
     Y_no_exp <- rbind(Y_no_exp, Y_nexp_temp)
     
-    ### result of Wishart prior
+    # Result for MGIG
     MAP_Omega_wrc <- getMAP_Omega_Wishart(Y_r, X_r, B0 %*% Sigma, phi, lambda, Lambda1)
+    MAP_Omega_wrc_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_r, B0 %*% Sigma, phi, lambda, Lambda1)
     MAP_Omega_wru <- getMAP_Omega_Wishart(Y_r, X_r, B0 %*% Sigma, phi, lambda, Lambda2)
+    MAP_Omega_wru_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_r, B0 %*% Sigma, phi, lambda, Lambda2)
     
-    ### result of MGIG prior
+    # result for Wishart
     MAP_Omega_mrc <- getMAP_Omega_MGIG(Y_r, X_r, B0, phi, psi,lambda, Lambda1)
+    MAP_Omega_mrc_noexp <- getMAP_Omega_MGIG(Y_no_exp, 0*X_r, B0, phi, psi,lambda, Lambda1)
     MAP_Omega_mru <- getMAP_Omega_MGIG(Y_r, X_r, B0, phi, psi,lambda, Lambda2)
+    MAP_Omega_mru_noexp <- getMAP_Omega_MGIG(Y_no_exp, 0*X_r, B0, phi, psi,lambda, Lambda2)
     
-    ### result of no experiment
-    MAP_Omega_nex <- getMAP_Omega_Wishart(Y_no_exp, 0*X_r, B0 %*% Sigma, phi, lambda, Lambda2)
-    #MAP_Omega_nex <- solve(cov(Y_no_exp))
     
-    ### save random designs and no exp
-    MGIG_random_cert[i_rep,i_step] <- CARlasso:::stein_loss(Omega,MAP_Omega_mrc)
-    MGIG_random_uncert[i_rep,i_step] <- CARlasso:::stein_loss(Omega,MAP_Omega_mru)
+    # save
+    MGIG_random_cert[i_rep,i_step] <- log( CARlasso:::stein_loss(Omega,MAP_Omega_mrc) ) - 
+      log(CARlasso:::stein_loss(Omega,MAP_Omega_mrc_noexp))
+    MGIG_random_uncert[i_rep,i_step] <- log( CARlasso:::stein_loss(Omega,MAP_Omega_mru) ) - 
+      log(CARlasso:::stein_loss(Omega,MAP_Omega_mru_noexp))
     
-    Wishart_random_cert[i_rep,i_step] <- CARlasso:::stein_loss(Omega,MAP_Omega_wrc)
-    Wishart_random_uncert[i_rep,i_step] <- CARlasso:::stein_loss(Omega,MAP_Omega_wru)
-    
-    no_exp[i_rep,i_step] <- CARlasso:::stein_loss(Omega,MAP_Omega_nex)
-    
+    Wishart_random_cert[i_rep,i_step]  <- log( CARlasso:::stein_loss(Omega,MAP_Omega_wrc) ) - 
+      log( CARlasso:::stein_loss(Omega,MAP_Omega_wrc_noexp) )
+    Wishart_random_uncert[i_rep,i_step] <- log( CARlasso:::stein_loss(Omega,MAP_Omega_wru) ) - 
+      log( CARlasso:::stein_loss(Omega,MAP_Omega_wru_noexp) )
     
     
     ## active learning
@@ -157,29 +162,30 @@ for(i_rep in 1:n_reps){
     
     
     
-    write.csv(MGIG_active_cert,all_file_name[1],row.names = F)
-    write.csv(MGIG_random_cert,all_file_name[2],row.names = F)
-    write.csv(Wishart_random_cert,all_file_name[3],row.names = F)
-    write.csv(MGIG_active_uncert,all_file_name[4],row.names = F)
-    write.csv(MGIG_random_uncert,all_file_name[5],row.names = F)
-    write.csv(Wishart_random_uncert,all_file_name[6],row.names = F)
-    write.csv(no_exp,all_file_name[7],row.names = F)
+    #write.csv(MGIG_active_cert,all_file_name[1],row.names = F)
+    write.csv(MGIG_random_cert,all_file_name[1],row.names = F)
+    write.csv(Wishart_random_cert,all_file_name[2],row.names = F)
+    #write.csv(MGIG_active_uncert,all_file_name[4],row.names = F)
+    write.csv(MGIG_random_uncert,all_file_name[3],row.names = F)
+    write.csv(Wishart_random_uncert,all_file_name[4],row.names = F)
+    #write.csv(no_exp,all_file_name[7],row.names = F)
     
     
     plot_out <- data.frame(step = 0:n_steps * step_size + n_init, 
                            mrc <- t(as.matrix(MGIG_random_cert[i_rep, ])), 
-                           mac <- t(as.matrix(MGIG_active_cert[i_rep, ])),
+                           #mac <- t(as.matrix(MGIG_active_cert[i_rep, ])),
                            
                            mru <- t(as.matrix(MGIG_random_uncert[i_rep, ])), 
-                           mau <- t(as.matrix(MGIG_active_uncert[i_rep, ])), 
+                           #mau <- t(as.matrix(MGIG_active_uncert[i_rep, ])), 
                            
                            wrc <- t(as.matrix(Wishart_random_cert[i_rep, ])),
                            wru <- t(as.matrix(Wishart_random_uncert[i_rep, ])), 
                            
-                           nex <- t(as.matrix(no_exp[i_rep, ])), 
+                           #nex <- t(as.matrix(no_exp[i_rep, ])), 
                            row.names = NULL)
-    matplot(plot_out[,1], plot_out[,2:8], type = "l",xlab = "sample size", ylab = "Stein's loss",lty = 1:7,col = 1:7)
-    legend("topright", legend = c("mrc","mac","mru","mau","wrc","wru","nex"),lty = 1:7,col = 1:7)
+    matplot(plot_out[,1], plot_out[,2:5], type = "l",xlab = "sample size", ylab = "log Stein's loss ratio to no experiment",lty = 1:7,col = 1:7)
+    abline(h = 0, lty = 2)
+    legend("topright", legend = c("MGIG-cert","MGIG-uncert","Wishart-cert","Wishart-uncert"),lty = 1:4,col = 1:4)
     
   }
   
