@@ -4,13 +4,13 @@ source("./Code/Graph_generator.R")
 source("./Code/utils.R")
 
 
-k <- 100
+k <- 50
 p <- k
 
-prior_cert <- c(1e-5,1e2)
+prior_cert <- c(1e-3,1e3)
 
-step_size <- 20
-n_steps <- 50
+step_size <- 50
+n_steps <- 40
 n_reps <- 100
 n_init <- 200
 
@@ -18,8 +18,8 @@ n_init <- 200
 set.seed(12345)
 B <- diag(k)
 B0 <- B  #+ matrix(rnorm(k*p,0,0.2),p,k)
-G <- g_model1(k)
-file_names_base <- "./Res/Model1_B0_"
+G <- g_model5(k)
+file_names_base <- "./Res/Model5_B0_"
 
 Omega <- G$Omega
 Sigma <- G$Sigma
@@ -32,7 +32,7 @@ phi <- .01 * diag(k)
 Lambda1 <- prior_cert[1] * diag(p) # less uncertainty
 Lambda2 <- prior_cert[2] * diag(p) # more uncertainty 
 
-lambda <- k
+lambda <- 5
 
 # object with results
 MGIG_random_cert <- data.frame(matrix(NA, nrow = n_reps, ncol = n_steps+1))
@@ -59,9 +59,9 @@ for(i_rep in 1:n_reps){
   
   cat("Round:", i_rep,"Initial estimation\n")
   
-  MAP_Omega_wrc <- getMAP_Omega_Wishart(Y_init, X_init, B0 %*% Sigma, phi, lambda, Lambda1)
+  MAP_Omega_wrc <- getMAP_Omega_Wishart(Y_init, X_init, B0 %*% Sigma, phi, 2*lambda, Lambda1)
   MAP_Omega_wrc_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_init, B0 %*% Sigma, phi, lambda, Lambda1)
-  MAP_Omega_wru <- getMAP_Omega_Wishart(Y_init, X_init, B0 %*% Sigma, phi, lambda, Lambda2)
+  MAP_Omega_wru <- getMAP_Omega_Wishart(Y_init, X_init, B0 %*% Sigma, phi, 2*lambda, Lambda2)
   MAP_Omega_wru_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_init, B0 %*% Sigma, phi, lambda, Lambda2)
   
   
@@ -109,9 +109,9 @@ for(i_rep in 1:n_reps){
     Y_no_exp <- rbind(Y_no_exp, Y_nexp_temp)
     
     # Result for MGIG
-    MAP_Omega_wrc <- getMAP_Omega_Wishart(Y_r, X_r, B0 %*% Sigma, phi, lambda, Lambda1)
+    MAP_Omega_wrc <- getMAP_Omega_Wishart(Y_r, X_r, B0 %*% Sigma, phi, 2*lambda, Lambda1)
     MAP_Omega_wrc_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_r, B0 %*% Sigma, phi, lambda, Lambda1)
-    MAP_Omega_wru <- getMAP_Omega_Wishart(Y_r, X_r, B0 %*% Sigma, phi, lambda, Lambda2)
+    MAP_Omega_wru <- getMAP_Omega_Wishart(Y_r, X_r, B0 %*% Sigma, phi, 2*lambda, Lambda2)
     MAP_Omega_wru_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_r, B0 %*% Sigma, phi, lambda, Lambda2)
     
     # result for Wishart
@@ -185,7 +185,7 @@ for(i_rep in 1:n_reps){
                            row.names = NULL)
     matplot(plot_out[,1], plot_out[,2:5], type = "l",xlab = "sample size", ylab = "log Stein's loss ratio to no experiment",lty = 1:7,col = 1:7)
     abline(h = 0, lty = 2)
-    legend("topright", legend = c("MGIG-cert","MGIG-uncert","Wishart-cert","Wishart-uncert"),lty = 1:4,col = 1:4)
+    #legend("topright", legend = c("MGIG-cert","MGIG-uncert","Wishart-cert","Wishart-uncert"),lty = 1:4,col = 1:4)
     
   }
   
