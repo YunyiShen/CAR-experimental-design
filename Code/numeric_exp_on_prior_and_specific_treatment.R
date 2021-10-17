@@ -18,8 +18,8 @@ n_init <- 200
 set.seed(12345)
 B <- diag(k)
 B0 <- B  #+ matrix(rnorm(k*p,0,0.2),p,k)
-G <- g_model1(k)
-file_names_base <- "./Res/Model1_B0_lambda_kp1_spc_trt_"
+G <- g_model3(k)
+file_names_base <- "./Res/Model3_B0_lambda_kp1_spc_trt_"
 
 Omega <- G$Omega
 Sigma <- G$Sigma
@@ -54,7 +54,7 @@ for(i_rep in 1:n_reps){
   ## initial samples
   n <- n_init
   X_init <- lapply(1:(floor(n_init/step_size)),function(i,k){return(diag(k))},k)
-  X_init <- Reduce(rbind, X_init)
+  X_init <- 3*Reduce(rbind, X_init)
   Y_init <- simu_data(X_init,B,Sigma)
   Y_no_exp <- simu_data(0 * X_init,B,Sigma)
   
@@ -101,7 +101,7 @@ for(i_rep in 1:n_reps){
     
     ## Random, all random share the same design
     
-    X_rand_temp <- diag(k)
+    X_rand_temp <- 3*diag(k)
     Y_rand_temp <- simu_data(X_rand_temp, B, Sigma)
     Y_nexp_temp <- simu_data(0 * X_rand_temp, B, Sigma)
     
@@ -186,7 +186,7 @@ for(i_rep in 1:n_reps){
                            row.names = NULL)
     matplot(plot_out[,1], plot_out[,2:5], type = "l",xlab = "sample size", ylab = "log Stein's loss ratio to no experiment",lty = 1:7,col = 1:7)
     abline(h = 0, lty = 2)
-    #legend("topright", legend = c("MGIG-cert","MGIG-uncert","Wishart-cert","Wishart-uncert"),lty = 1:4,col = 1:4)
+    legend("topright", legend = c("MGIG-cert","MGIG-uncert","Wishart-cert","Wishart-uncert"),lty = 1:4,col = 1:4)
     
   }
   
