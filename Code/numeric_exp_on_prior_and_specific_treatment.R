@@ -18,8 +18,8 @@ n_init <- 200
 set.seed(12345)
 B <- diag(k)
 B0 <- B  #+ matrix(rnorm(k*p,0,0.2),p,k)
-G <- g_model6(k)
-file_names_base <- "./Res/Model6_B0_"
+G <- g_model5(k)
+file_names_base <- "./Res/Model5_B0_spc_trt_"
 
 Omega <- G$Omega
 Sigma <- G$Sigma
@@ -53,7 +53,8 @@ all_file_name <- paste0(file_names_base,design_name,file_names_last)
 for(i_rep in 1:n_reps){
   ## initial samples
   n <- n_init
-  X_init <- matrix( sign( runif(n * p, -1,1 )) , n , p )
+  X_init <- lapply(1:(floor(n_init/step_size)),function(i,k){return(diag(k))},k)
+  X_init <- Reduce(rbind, X_init)
   Y_init <- simu_data(X_init,B,Sigma)
   Y_no_exp <- simu_data(0 * X_init,B,Sigma)
   
@@ -96,11 +97,11 @@ for(i_rep in 1:n_reps){
     
     # get data
     n <- n + step_size
-    cat("  step :" , i_step, " Random Design..\n")
+    cat("  step :" , i_step, " specific treatment..\n")
     
     ## Random, all random share the same design
     
-    X_rand_temp <- matrix(runif(step_size * p,-1,1),step_size,p)
+    X_rand_temp <- diag(k)
     Y_rand_temp <- simu_data(X_rand_temp, B, Sigma)
     Y_nexp_temp <- simu_data(0 * X_rand_temp, B, Sigma)
     

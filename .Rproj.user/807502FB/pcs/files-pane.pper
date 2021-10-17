@@ -1,9 +1,9 @@
 {
-    "path" : "/media/yunyi/Academia/WID-work/experimental_design_AR/Res",
-    "sortOrder" : [
+    "path": "/media/yunyi/Academia/WID-work/experimental_design_AR/Code",
+    "sortOrder": [
         {
-            "ascending" : true,
-            "columnIndex" : 2
+            "columnIndex": 2,
+            "ascending": true
         }
     ]
 }
