@@ -18,8 +18,8 @@ n_init <- 200
 set.seed(12345)
 B <- diag(k)
 B0 <- B  #+ matrix(rnorm(k*p,0,0.2),p,k)
-G <- g_model5(k)
-file_names_base <- "./Res/Model5_B0_spc_trt_"
+G <- g_model1(k)
+file_names_base <- "./Res/Model1_B0_lambda_kp1_spc_trt_"
 
 Omega <- G$Omega
 Sigma <- G$Sigma
@@ -32,7 +32,7 @@ phi <- .01 * diag(k)
 Lambda1 <- prior_cert[1] * diag(p) # less uncertainty
 Lambda2 <- prior_cert[2] * diag(p) # more uncertainty 
 
-lambda <- 5
+lambda <- k+1
 
 # object with results
 MGIG_random_cert <- data.frame(matrix(NA, nrow = n_reps, ncol = n_steps+1))
