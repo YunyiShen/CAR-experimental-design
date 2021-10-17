@@ -3,6 +3,7 @@ library(reshape2)
 
 res_dir <- "./Res/init_200_stepsize_50_steps_40_lambda_kp1"
 res_files <- list.files(res_dir, pattern = "csv$", full.names = T)
+res_files <- res_files[grep("spc",res_files)]
 res_df <- lapply(res_files,read.csv)
 
 res_mean <- sapply(res_df, colMeans)
@@ -11,29 +12,27 @@ colnames(res_mean) <- c("MGIG-cert-1", "MGIG-uncert-1",
                         "MGIG-cert-2", "MGIG-uncert-2",
                         "Wishart-cert-2","Wishart-uncert-2",
                         "MGIG-cert-3", "MGIG-uncert-3",
-                        "Wishart-cert-3","Wishart-uncert-3"
+                        "Wishart-cert-3","Wishart-uncert-3",
+                        
+                        "MGIG-cert-4", "MGIG-uncert-4",
+                        "Wishart-cert-4","Wishart-uncert-4",
+                        "MGIG-cert-5", "MGIG-uncert-5",
+                        
+                        "Wishart-cert-5","Wishart-uncert-5",
+                        "MGIG-cert-6", "MGIG-uncert-6",
+                        "Wishart-cert-6","Wishart-uncert-6"
                         )
 
 res_lw <- sapply(res_df, function(w){
   apply(as.matrix(w),2, quantile, probs = 0.025)
 })
-colnames(res_lw) <- c("MGIG-cert-1", "MGIG-uncert-1",
-                      "Wishart-cert-1","Wishart-uncert-1",
-                      "MGIG-cert-2", "MGIG-uncert-2",
-                      "Wishart-cert-2","Wishart-uncert-2",
-                      "MGIG-cert-3", "MGIG-uncert-3",
-                      "Wishart-cert-3","Wishart-uncert-3")
+colnames(res_lw) <- colnames(res_mean)
 
 res_hi <- sapply(res_df, function(w){
   apply(as.matrix(w),2, quantile, probs = 0.925)
 })
 
-colnames(res_hi) <- c("MGIG-cert-1", "MGIG-uncert-1",
-                      "Wishart-cert-1","Wishart-uncert-1",
-                      "MGIG-cert-2", "MGIG-uncert-2",
-                      "Wishart-cert-2","Wishart-uncert-2",
-                      "MGIG-cert-3", "MGIG-uncert-3",
-                      "Wishart-cert-3","Wishart-uncert-3")
+colnames(res_hi) <- colnames(res_mean)
 
 sample_size <- 200 + 0:40 * 50
 
@@ -65,5 +64,5 @@ ggplot(data=plot_data, aes(x=sample_size, y = mean, color = prior, shape = prior
   ylab("log Stein's loss difference to no experiment") + 
   facet_wrap(~model, nrow = 3)
 
-ggsave("./Res/init_200_stepsize_50_steps_40_lambda_kp1/log_stein_diff3.pdf",
-       width = 10, height = 6, scale = 0.8)
+ggsave("./Res/init_200_stepsize_50_steps_40_lambda_kp1/log_stein_diff3_rand_des.pdf",
+       width = 10, height = 8, scale = 0.8)
