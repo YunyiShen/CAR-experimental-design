@@ -64,5 +64,5 @@ ggplot(data=plot_data, aes(x=sample_size, y = mean, color = prior, shape = prior
   ylab("log Stein's loss difference to no experiment") + 
   facet_wrap(~model, nrow = 3)
 
-ggsave("./Res/init_200_stepsize_50_steps_40_lambda_kp1/log_stein_diff3_rand_des.pdf",
+ggsave("./Res/init_200_stepsize_50_steps_40_lambda_kp1/log_stein_diff3_spec_trt.pdf",
        width = 10, height = 8, scale = 0.8)
