@@ -19,7 +19,7 @@ set.seed(12345)
 B <- diag(k)
 B0 <- B  #+ matrix(rnorm(k*p,0,0.2),p,k)
 G <- g_model2(k)
-file_names_base <- "./Res/init_200_stepsize_50_steps_40_lambdakp1/Model2_B0_lambda_kp1_spc_trt_KLdiv_"
+file_names_base <- "./Res/init_200_stepsize_50_steps_40_lambda_kp1/Model2_B0_lambda_kp1_spc_trt_KLdiv_"
 
 Omega <- G$Omega
 Sigma <- G$Sigma
@@ -61,9 +61,9 @@ for(i_rep in 1:n_reps){
   cat("Round:", i_rep,"Initial estimation\n")
   
   posterior_para_Omega_wrc <- get_posterior_para_Omega_Wishart(Y_init, X_init, B0 %*% Sigma, phi, 2*lambda, Lambda1)
-  posterior_para_Omega_wrc_noexp <- get_posterior_para_Omega_Wishart(Y_no_exp, 0*X_init, B0 %*% Sigma, phi, lambda, Lambda1)
+  posterior_para_Omega_wrc_noexp <- get_posterior_para_Omega_Wishart(Y_no_exp, 0*X_init, B0 %*% Sigma, phi, 2*lambda, Lambda1)
   posterior_para_Omega_wru <- get_posterior_para_Omega_Wishart(Y_init, X_init, B0 %*% Sigma, phi, 2*lambda, Lambda2)
-  posterior_para_Omega_wru_noexp <- get_posterior_para_Omega_Wishart(Y_no_exp, 0*X_init, B0 %*% Sigma, phi, lambda, Lambda2)
+  posterior_para_Omega_wru_noexp <- get_posterior_para_Omega_Wishart(Y_no_exp, 0*X_init, B0 %*% Sigma, phi, 2*lambda, Lambda2)
   
   
   posterior_para_Omega_mrc <- get_posterior_para_Omega_MGIG(Y_init, X_init, B0, phi, psi,lambda, Lambda1)
@@ -129,9 +129,9 @@ for(i_rep in 1:n_reps){
     
     # Result for MGIG
     posterior_para_Omega_wrc <- get_posterior_para_Omega_Wishart(Y_r, X_r, B0 %*% Sigma, phi, 2*lambda, Lambda1)
-    posterior_para_Omega_wrc_noexp <- get_posterior_para_Omega_Wishart(Y_no_exp, 0*X_r, B0 %*% Sigma, phi, lambda, Lambda1)
+    posterior_para_Omega_wrc_noexp <- get_posterior_para_Omega_Wishart(Y_no_exp, 0*X_r, B0 %*% Sigma, phi, 2*lambda, Lambda1)
     posterior_para_Omega_wru <- get_posterior_para_Omega_Wishart(Y_r, X_r, B0 %*% Sigma, phi, 2*lambda, Lambda2)
-    posterior_para_Omega_wru_noexp <- get_posterior_para_Omega_Wishart(Y_no_exp, 0*X_r, B0 %*% Sigma, phi, lambda, Lambda2)
+    posterior_para_Omega_wru_noexp <- get_posterior_para_Omega_Wishart(Y_no_exp, 0*X_r, B0 %*% Sigma, phi, 2*lambda, Lambda2)
     
     # result for Wishart
     posterior_para_Omega_mrc <- get_posterior_para_Omega_MGIG(Y_r, X_r, B0, phi, psi,lambda, Lambda1)
@@ -194,9 +194,9 @@ for(i_rep in 1:n_reps){
                            
                            #nex <- t(as.matrix(no_exp[i_rep, ])), 
                            row.names = NULL)
-    matplot(plot_out[,1], plot_out[,2:5], type = "l",xlab = "sample size", ylab = "log Stein's loss ratio to no experiment",lty = 1:7,col = 1:7)
+    matplot(plot_out[,1], plot_out[,2:5], type = "l",xlab = "sample size", ylab = "KL divergence",lty = 1:7,col = 1:7)
     abline(h = 0, lty = 2)
-    #legend("topright", legend = c("MGIG-cert","MGIG-uncert","Wishart-cert","Wishart-uncert"),lty = 1:4,col = 1:4)
+    legend("topright", legend = c("MGIG-cert","MGIG-uncert","Wishart-cert","Wishart-uncert"),lty = 1:4,col = 1:4)
     
   }
   
