@@ -1,3 +1,9 @@
+log_sum_exp <- function(x){
+    xstar <- max(x)
+    xstar + log(sum(exp(x-xstar)))
+}
+
+
 ## This get the duplicated matrix D_k
 
 getD <- function(n){
@@ -160,4 +166,22 @@ get_posterior_para_Omega_Wishart <- function(Y, X, B0, phi, lambda, Lambda ){
 KLdiv_wishart <- function(lambda, phi1, phi2){
   ph2invphi <- solve(phi2, phi1)
   (-lambda/2 ) * determinant(ph2invphi)$modulus + (lambda/2) * (sum(diag(ph2invphi))-nrow(phi1))
+}
+
+KLdiv_wishart2 <- function(samples, lambda1, phi1, lambda2, phi2){
+  logfoverg <- sapply(samples, function(X, lambda1,phi1, lambda2, phi2){
+    CholWishart::dWishart(X, lambda1, phi1) - CholWishart::dWishart(X, lambda2, phi2)
+  }, lambda1,phi1, lambda2, phi2)
+  mean(logfoverg)
+}
+
+KLdiv_MGIG2 <- function(samples, nu1, phi1, psi1,nu2, phi2, psi2){
+    logfoverg <- sapply(samples, function(X,nu1, phi1, psi1, nu2, phi2, psi2 ){
+        fMGIG(X,nu1, phi1, psi1) - fMGIG(X,nu2, phi2, psi2)
+    },nu1, phi1, psi1, nu2, phi2, psi2)
+
+    term1 <- log_sum_exp(-logfoverg) - log(length(logfoverg))
+    term2 <- mean(logfoverg)
+    
+    term1+term2
 }

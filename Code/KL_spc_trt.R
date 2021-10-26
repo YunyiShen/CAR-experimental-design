@@ -1,5 +1,6 @@
 library(rMGIG)
 library(MASS)
+library(CholWishart)
 source("./Code/Graph_generator.R")
 source("./Code/utils.R")
 
@@ -48,6 +49,13 @@ design_name <- apply( as.matrix(simu_designs),1,paste0,collapse = "")
 file_names_last <- paste0("_k",k,".csv" )
 all_file_name <- paste0(file_names_base,design_name,file_names_last)
 
+
+### some useful prior samples
+
+sample_mgig <- rMGIG::rMGIG(n=5e3, lambda, phi, psi, df = 2*k, maxit = 1e5)
+sample_wishart <- rWishart(5e3, 2*lambda, phi)
+sample_wishart <- lapply(1:5e3, function(i){sample_wishart[,,i]})
+
 ### start the simulation 
 
 for(i_rep in 1:n_reps){
@@ -55,6 +63,7 @@ for(i_rep in 1:n_reps){
   n <- n_init
   X_init <- lapply(1:(floor(n_init/step_size)),function(i,k){return(diag(k))},k)
   X_init <- 3*Reduce(rbind, X_init)
+  Y_init <- simu_data(X_init,B,Sigma)
   Y_init <- simu_data(X_init,B,Sigma)
   Y_no_exp <- simu_data(0 * X_init,B,Sigma)
   
@@ -81,33 +90,43 @@ for(i_rep in 1:n_reps){
   X_r <- X_mac  <- X_mau <- X_init
   
   
-  MGIG_random_cert[i_rep,1] <- rMGIG::KLdiv(posterior_para_Omega_mrc_noexp$nu, 
-                                            posterior_para_Omega_mrc_noexp$phi,
-                                            posterior_para_Omega_mrc_noexp$psi,
+  MGIG_random_cert[i_rep,1] <- KLdiv_MGIG2(sample_mgig,lambda, phi, psi,
                                             posterior_para_Omega_mrc$nu,
                                             posterior_para_Omega_mrc$phi,
-                                            posterior_para_Omega_mrc$psi,
-                                            n_samples = 5000,
-                                            df = 1e4,
-                                            maxit = 5e4
+                                            posterior_para_Omega_mrc$psi
+                                            ) /
+                                KLdiv_MGIG2(sample_mgig,lambda, phi,psi,
+                                            posterior_para_Omega_mrc_noexp$nu,
+                                            posterior_para_Omega_mrc_noexp$phi,
+                                            posterior_para_Omega_mrc_noexp$psi
                                             )
-  MGIG_random_uncert[i_rep,1] <- rMGIG::KLdiv(posterior_para_Omega_mru_noexp$nu, 
-                                            posterior_para_Omega_mru_noexp$phi,
-                                            posterior_para_Omega_mru_noexp$psi,
+  MGIG_random_uncert[i_rep,1] <- KLdiv_MGIG2(sample_mgig,lambda, phi, psi,
                                             posterior_para_Omega_mru$nu,
                                             posterior_para_Omega_mru$phi,
-                                            posterior_para_Omega_mru$psi,
-                                            n_samples = 5000,
-                                            df = 1e4,
-                                            maxit = 5e4
+                                            posterior_para_Omega_mru$psi
+                                            ) /
+                                KLdiv_MGIG2(sample_mgig,lambda, phi,psi,
+                                            posterior_para_Omega_mru_noexp$nu,
+                                            posterior_para_Omega_mru_noexp$phi,
+                                            posterior_para_Omega_mru_noexp$psi
                                             )
   
-  Wishart_random_cert[i_rep,1]  <- KLdiv_wishart(posterior_para_Omega_wrc_noexp$lambda,
-                                                posterior_para_Omega_wrc_noexp$phi,
-                                                posterior_para_Omega_wrc$phi)
-  Wishart_random_uncert[i_rep,1] <- KLdiv_wishart(posterior_para_Omega_wru_noexp$lambda,
-                                                posterior_para_Omega_wru_noexp$phi,
-                                                posterior_para_Omega_wru$phi)
+  Wishart_random_cert[i_rep,1]  <- KLdiv_wishart2(sample_wishart, 2*lambda, phi,
+                                                posterior_para_Omega_wrc$lambda,
+                                                posterior_para_Omega_wrc$phi
+                                                ) / 
+                                    KLdiv_wishart2(sample_wishart, 2*lambda, phi,
+                                                posterior_para_Omega_wrc_noexp$lambda,
+                                                posterior_para_Omega_wrc_noexp$phi
+                                                )
+  Wishart_random_uncert[i_rep,1] <- KLdiv_wishart2(sample_wishart, 2*lambda, phi,
+                                                posterior_para_Omega_wru$lambda,
+                                                posterior_para_Omega_wru$phi
+                                                ) / 
+                                    KLdiv_wishart2(sample_wishart, 2*lambda, phi,
+                                                posterior_para_Omega_wru_noexp$lambda,
+                                                posterior_para_Omega_wru_noexp$phi
+                                                )
   
   
   
@@ -119,7 +138,7 @@ for(i_rep in 1:n_reps){
     
     ## Random, all random share the same design
     
-    X_rand_temp <- 3*diag(k)
+    X_rand_temp <- X_rand_temp <- 3*diag(k)
     Y_rand_temp <- simu_data(X_rand_temp, B, Sigma)
     Y_nexp_temp <- simu_data(0 * X_rand_temp, B, Sigma)
     
@@ -141,35 +160,45 @@ for(i_rep in 1:n_reps){
     
     
     # save
-    MGIG_random_cert[i_rep,i_step] <- rMGIG::KLdiv(posterior_para_Omega_mrc_noexp$nu, 
-                                            posterior_para_Omega_mrc_noexp$phi,
-                                            posterior_para_Omega_mrc_noexp$psi,
+    MGIG_random_cert[i_rep,i_step] <- KLdiv_MGIG2(sample_mgig,lambda, phi, psi,
                                             posterior_para_Omega_mrc$nu,
                                             posterior_para_Omega_mrc$phi,
-                                            posterior_para_Omega_mrc$psi,
-                                            n_samples = 5000,
-                                            df = 1e4,
-                                            maxit = 5e4
+                                            posterior_para_Omega_mrc$psi
+                                            ) /
+                                KLdiv_MGIG2(sample_mgig,lambda, phi,psi,
+                                            posterior_para_Omega_mrc_noexp$nu,
+                                            posterior_para_Omega_mrc_noexp$phi,
+                                            posterior_para_Omega_mrc_noexp$psi
                                             )
 
-    MGIG_random_uncert[i_rep,i_step] <- rMGIG::KLdiv(posterior_para_Omega_mru_noexp$nu, 
-                                            posterior_para_Omega_mru_noexp$phi,
-                                            posterior_para_Omega_mru_noexp$psi,
+    MGIG_random_uncert[i_rep,i_step] <- KLdiv_MGIG2(sample_mgig,lambda, phi, psi,
                                             posterior_para_Omega_mru$nu,
                                             posterior_para_Omega_mru$phi,
-                                            posterior_para_Omega_mru$psi,
-                                            n_samples = 5e3,
-                                            df = 1e4,
-                                            maxit = 5e4
+                                            posterior_para_Omega_mru$psi
+                                            ) /
+                                KLdiv_MGIG2(sample_mgig,lambda, phi,psi,
+                                            posterior_para_Omega_mru_noexp$nu,
+                                            posterior_para_Omega_mru_noexp$phi,
+                                            posterior_para_Omega_mru_noexp$psi
                                             )
     
-    Wishart_random_cert[i_rep,i_step] <- KLdiv_wishart(posterior_para_Omega_wrc_noexp$lambda,
-                                                posterior_para_Omega_wrc_noexp$phi,
-                                                posterior_para_Omega_wrc$phi)
+    Wishart_random_cert[i_rep,i_step] <- KLdiv_wishart2(sample_wishart, 2*lambda, phi,
+                                                posterior_para_Omega_wrc$lambda,
+                                                posterior_para_Omega_wrc$phi
+                                                ) / 
+                                    KLdiv_wishart2(sample_wishart, 2*lambda, phi,
+                                                posterior_para_Omega_wrc_noexp$lambda,
+                                                posterior_para_Omega_wrc_noexp$phi
+                                                )
 
-    Wishart_random_uncert[i_rep,i_step] <- KLdiv_wishart(posterior_para_Omega_wru_noexp$lambda,
-                                                posterior_para_Omega_wru_noexp$phi,
-                                                posterior_para_Omega_wru$phi)
+    Wishart_random_uncert[i_rep,i_step] <- KLdiv_wishart2(sample_wishart, 2*lambda, phi,
+                                                posterior_para_Omega_wru$lambda,
+                                                posterior_para_Omega_wru$phi
+                                                ) / 
+                                    KLdiv_wishart2(sample_wishart, 2*lambda, phi,
+                                                posterior_para_Omega_wru_noexp$lambda,
+                                                posterior_para_Omega_wru_noexp$phi
+                                                )
     
         
     
@@ -194,7 +223,7 @@ for(i_rep in 1:n_reps){
                            
                            #nex <- t(as.matrix(no_exp[i_rep, ])), 
                            row.names = NULL)
-    matplot(plot_out[,1], plot_out[,2:5], type = "l",xlab = "sample size", ylab = "KL divergence",lty = 1:7,col = 1:7)
+    matplot((plot_out[,1]), log(plot_out[,2:5]), type = "l",xlab = "sample size", ylab = "log KL to prior ratio",lty = 1:7,col = 1:7)
     abline(h = 0, lty = 2)
     legend("topright", legend = c("MGIG-cert","MGIG-uncert","Wishart-cert","Wishart-uncert"),lty = 1:4,col = 1:4)
     

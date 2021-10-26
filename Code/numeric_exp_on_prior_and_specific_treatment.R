@@ -19,7 +19,7 @@ set.seed(12345)
 B <- diag(k)
 B0 <- B  #+ matrix(rnorm(k*p,0,0.2),p,k)
 G <- g_model3(k)
-file_names_base <- "./Res/Model3_B0_lambda_kp1_spc_trt_"
+file_names_base <- "./Res/init_200_stepsize_50_steps_40_lambda_kp1/Model3_B0_lambda_kp1_spc_trt_"
 
 Omega <- G$Omega
 Sigma <- G$Sigma
@@ -61,9 +61,9 @@ for(i_rep in 1:n_reps){
   cat("Round:", i_rep,"Initial estimation\n")
   
   MAP_Omega_wrc <- getMAP_Omega_Wishart(Y_init, X_init, B0 %*% Sigma, phi, 2*lambda, Lambda1)
-  MAP_Omega_wrc_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_init, B0 %*% Sigma, phi, lambda, Lambda1)
+  MAP_Omega_wrc_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_init, B0 %*% Sigma, phi, 2*lambda, Lambda1)
   MAP_Omega_wru <- getMAP_Omega_Wishart(Y_init, X_init, B0 %*% Sigma, phi, 2*lambda, Lambda2)
-  MAP_Omega_wru_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_init, B0 %*% Sigma, phi, lambda, Lambda2)
+  MAP_Omega_wru_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_init, B0 %*% Sigma, phi, 2*lambda, Lambda2)
   
   
   MAP_Omega_mrc <- getMAP_Omega_MGIG(Y_init, X_init, B0, phi, psi,lambda, Lambda1)
@@ -111,9 +111,9 @@ for(i_rep in 1:n_reps){
     
     # Result for MGIG
     MAP_Omega_wrc <- getMAP_Omega_Wishart(Y_r, X_r, B0 %*% Sigma, phi, 2*lambda, Lambda1)
-    MAP_Omega_wrc_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_r, B0 %*% Sigma, phi, lambda, Lambda1)
+    MAP_Omega_wrc_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_r, B0 %*% Sigma, phi, 2*lambda, Lambda1)
     MAP_Omega_wru <- getMAP_Omega_Wishart(Y_r, X_r, B0 %*% Sigma, phi, 2*lambda, Lambda2)
-    MAP_Omega_wru_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_r, B0 %*% Sigma, phi, lambda, Lambda2)
+    MAP_Omega_wru_noexp <- getMAP_Omega_Wishart(Y_no_exp, 0*X_r, B0 %*% Sigma, phi, 2*lambda, Lambda2)
     
     # result for Wishart
     MAP_Omega_mrc <- getMAP_Omega_MGIG(Y_r, X_r, B0, phi, psi,lambda, Lambda1)
