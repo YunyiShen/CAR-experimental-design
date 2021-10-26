@@ -131,3 +131,33 @@ linear_B <- function(B_list){
   Reduce(rbind,temp)
 }
 
+get_posterior_para_Omega_MGIG <- function(Y, X, B0, phi, psi,lambda, Lambda ){
+  invLambda <- solve(Lambda)
+  XtY <- t(X) %*% Y
+  XtX <- t(X) %*% X
+  sP <- (XtX) + invLambda
+  invLB <- solve(Lambda, B)
+  
+  phi_hat <-phi + t(Y) %*% Y-t(XtY) %*%solve(sP, XtY) 
+  phi_hat <-( phi_hat + t(phi_hat))/2
+  psi_hat <- psi+ t(B)%*%invLB-t(invLB)%*%solve(sP,invLB)
+  psi_hat <- (psi_hat + t(psi_hat))/2
+  list(nu = lambda + nrow(Y)/2, phi = phi_hat, psi = psi_hat)
+}
+
+
+get_posterior_para_Omega_Wishart <- function(Y, X, B0, phi, lambda, Lambda ){
+  invLambda <- solve(Lambda)
+  B0tL <- t(B0) %*% invLambda
+  YtX <- t(Y) %*% X
+  XtX <- t(X) %*% X
+  YtY <- t(Y) %*% Y
+  phi_hat <- phi + YtY +B0tL%*%B0 - (B0tL+YtX) %*% solve(XtX+invLambda,t(B0tL+YtX))
+  
+  list(phi = phi_hat, lambda = lambda+nrow(Y))
+}
+
+KLdiv_wishart <- function(lambda, phi1, phi2){
+  ph2invphi <- solve(phi2, phi1)
+  (-lambda/2 ) * determinant(ph2invphi)$modulus + (lambda/2) * (sum(diag(ph2invphi))-nrow(phi1))
+}
