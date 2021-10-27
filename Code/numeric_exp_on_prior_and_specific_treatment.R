@@ -18,8 +18,8 @@ n_init <- 200
 set.seed(12345)
 B <- diag(k)
 B0 <- B  #+ matrix(rnorm(k*p,0,0.2),p,k)
-G <- g_model3(k)
-file_names_base <- "./Res/init_200_stepsize_50_steps_40_lambda_kp1/Model3_B0_lambda_kp1_spc_trt_"
+G <- g_model6(k)
+file_names_base <- "./Res/init_200_stepsize_50_steps_40_lambda_kp1_stein/Model6_B0_lambda_kp1_spc_trt_"
 
 Omega <- G$Omega
 Sigma <- G$Sigma
