@@ -4,7 +4,7 @@ library(reshape2)
 res_dir <- "./Res/init_200_stepsize_50_steps_40_lambda_kp1_kl"
 res_files <- list.files(res_dir, pattern = "csv$", full.names = T)
 #res_files <- res_files[-grep("Model5",res_files)]
-res_files <- res_files[grep("spc",res_files)]
+res_files <- res_files[-grep("spc",res_files)]
 res_df <- lapply(res_files,read.csv)
 
 res_mean <- sapply(res_df, colMeans, na.rm = T)
@@ -63,8 +63,8 @@ ggplot(data=plot_data, aes(x=sample_size, y = log(mean), color = prior, shape = 
   geom_errorbar(aes(ymin = log(lw), ymax = log(hi)), alpha = 0.3, width = 5) + 
   scale_color_manual(values = c("#009E73", "#0072B2", "#D55E00", "#CC79A7")) + 
   xlab("Sample size") + 
-  ylab("log KL divergence to prior difference compare to no experiment") + 
+  ylab("Log difference in KL divergence between prior and posterior (random vs null experiment)") + 
   facet_wrap(~model, nrow = 3, scales = "free_y")
 
-ggsave("./Res/init_200_stepsize_50_steps_40_lambda_kp1_kl/log_KL_diff2_spc_trt.pdf",
+ggsave("./Res/init_200_stepsize_50_steps_40_lambda_kp1_kl/log_KL_diff2_rand_exp.pdf",
        width = 10, height = 8, scale = 0.8)
