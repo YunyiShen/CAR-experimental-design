@@ -61,7 +61,7 @@ ggplot(data=plot_data, aes(x=sample_size, y = mean, color = prior, shape = prior
   geom_errorbar(aes(ymin = lw, ymax = hi), alpha = 0.3, width = 5) + 
   scale_color_manual(values = c("#009E73", "#0072B2", "#D55E00", "#CC79A7")) + 
   xlab("Sample size") + 
-  ylab("log Stein's loss difference to no experiment") + 
+  ylab("Difference in log Stein's loss of random experiment to null experiment") + 
   facet_wrap(~model, nrow = 3)
 
 ggsave("./Res/init_200_stepsize_50_steps_40_lambda_kp1_stein/log_stein_diff3_rand_exp.pdf",
