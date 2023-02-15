@@ -1,10 +1,30 @@
 library(ggplot2)
 library(reshape2)
 
-res_dir <- "./Res/init_200_stepsize_50_steps_40_lambda_kp1_kl"
+bias_prior <- FALSE
+rand_exp <- FALSE
+
+res_dir <- "./Res/init_200_stepsize_50_steps_40_lambda_kp1_kl_bias_prior"
+fig_file <- paste0(res_dir,"/", "log_KL_diff2_rand_exp_bias_prior.pdf")
+
+if(!bias_prior){
+  res_dir <- sub("_bias_prior","", res_dir)
+  fig_file <- sub("_bias_prior","", fig_file)
+  fig_file <- sub("_bias_prior","", fig_file)
+}
+
 res_files <- list.files(res_dir, pattern = "csv$", full.names = T)
+
+if(!rand_exp){
+  res_dir <- sub("_rand_exp","_spc_trt", res_dir)
+  fig_file <- sub("_rand_exp","_spc_trt", fig_file)
+  res_files <- res_files[grep("spc",res_files)]
+}else{
+  res_files <- res_files[-grep("spc",res_files)]
+}
+
 #res_files <- res_files[-grep("Model5",res_files)]
-res_files <- res_files[grep("spc",res_files)]
+
 res_df <- lapply(res_files,read.csv)
 
 res_mean <- sapply(res_df, colMeans, na.rm = T)
@@ -57,14 +77,17 @@ res_hi_long$model <- res_mean_long$model
 plot_data <- merge(res_mean_long, res_hi_long)
 plot_data <- merge(plot_data, res_lw_long)
 
-ggplot(data=plot_data, aes(x=sample_size, y = log(mean), color = prior, shape = prior)) + 
+ggplot(data=plot_data, aes(x=sample_size, y = log(mean), color = prior, shape = prior, lty = prior)) + 
   geom_hline(yintercept =  0, lty = 2) + 
-  geom_line() + 
-  geom_errorbar(aes(ymin = log(lw), ymax = log(hi)), alpha = 0.3, width = 5) + 
+  geom_line(size = .75) + 
+  geom_errorbar(aes(ymin = log(lw), ymax = log(hi)), alpha = 0.5, width = 5, size = .5) + 
   scale_color_manual(values = c("#009E73", "#0072B2", "#D55E00", "#CC79A7")) + 
   xlab("Sample size") + 
-  ylab("Difference in log KL divergence between prior and posterior (specific vs null experiment)") + 
-  facet_wrap(~model, nrow = 3, scales = "free_y")
+  ylab("Difference in log KL divergence between \n prior and posterior (random vs null experiment)") + 
+  facet_wrap(~model, nrow = 2, scales = "free_y")+
+  theme_bw() + 
+  theme(legend.position="bottom") + 
+  theme(strip.background =element_rect(fill="white"))
 
-ggsave("./Res/init_200_stepsize_50_steps_40_lambda_kp1_kl/log_KL_diff2_spec_trt.pdf",
-       width = 10, height = 8, scale = 0.8)
+ggsave(fig_file,
+       width = 10, height = 5, scale = 0.8)

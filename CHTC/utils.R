@@ -185,3 +185,10 @@ KLdiv_MGIG2 <- function(samples, nu1, phi1, psi1,nu2, phi2, psi2){
     
     term1+term2
 }
+
+stein_loss <- function(X_hat,X){
+  p <- nrow(X)
+  inv_X <- solve(X)
+  XhatinvX <- X_hat %*% inv_X
+  sum(diag(XhatinvX)) - determinant(XhatinvX)$modulus[1] - p
+}

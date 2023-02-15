@@ -1,10 +1,35 @@
 library(ggplot2)
 library(reshape2)
 
-res_dir <- "./Res/init_200_stepsize_50_steps_40_lambda_kp1_stein"
+bias_prior <- TRUE
+rand_exp <- FALSE
+
+res_dir <- "./Res/init_200_stepsize_50_steps_40_lambda_kp1_kl_bias_prior_stein"
+fig_file <- paste0(res_dir,"/", "log_KL_diff2_rand_exp_bias_prior_stein.pdf")
+
+if(!bias_prior){
+  res_dir <- sub("_bias_prior","", res_dir)
+  fig_file <- sub("_bias_prior","", fig_file)
+  fig_file <- sub("_bias_prior","", fig_file)
+}
+
 res_files <- list.files(res_dir, pattern = "csv$", full.names = T)
-res_files <- res_files[-grep("spc",res_files)]
-res_df <- lapply(res_files,read.csv)
+
+if(!rand_exp){
+  res_dir <- sub("_rand_exp","_spc_trt", res_dir)
+  fig_file <- sub("_rand_exp","_spc_trt", fig_file)
+  res_files <- res_files[grep("spc",res_files)]
+}else{
+  res_files <- res_files[-grep("spc",res_files)]
+}
+
+
+
+res_df <- lapply(res_files,read.csv) 
+if(bias_prior){ # different batch, this was logged already
+  res_df <- res_df |> lapply(log)
+}
+
 
 res_mean <- sapply(res_df, colMeans)
 colnames(res_mean) <- c("MGIG-cert-1", "MGIG-uncert-1",
@@ -24,17 +49,17 @@ colnames(res_mean) <- c("MGIG-cert-1", "MGIG-uncert-1",
                         )
 
 res_lw <- sapply(res_df, function(w){
-  apply(as.matrix(w),2, quantile, probs = 0.025)
+  apply(as.matrix(w),2, quantile, probs = 0.025, na.rm = T)
 })
 colnames(res_lw) <- colnames(res_mean)
 
 res_hi <- sapply(res_df, function(w){
-  apply(as.matrix(w),2, quantile, probs = 0.925)
+  apply(as.matrix(w),2, quantile, probs = 0.925, na.rm = T)
 })
 
 colnames(res_hi) <- colnames(res_mean)
 
-sample_size <- 200 + 0:40 * 50
+sample_size <- 200 + 1:(40+!bias_prior) * 50
 
 res_mean <- data.frame(sample_size=sample_size, res_mean)
 res_lw <- data.frame(sample_size=sample_size, res_lw)
@@ -55,14 +80,18 @@ res_hi_long$model <- res_mean_long$model
 plot_data <- merge(res_mean_long, res_hi_long)
 plot_data <- merge(plot_data, res_lw_long)
 
-ggplot(data=plot_data, aes(x=sample_size, y = mean, color = prior, shape = prior)) + 
+ggplot(data=plot_data, aes(x=sample_size, y = mean, color = prior, shape = prior, lty = prior)) + 
   geom_hline(yintercept =  0, lty = 2) + 
-  geom_line() + 
-  geom_errorbar(aes(ymin = lw, ymax = hi), alpha = 0.3, width = 5) + 
+  geom_line(size = .75) + 
+  geom_errorbar(aes(ymin = lw, ymax = hi), alpha = 0.5, width = 5, size = .5) + 
   scale_color_manual(values = c("#009E73", "#0072B2", "#D55E00", "#CC79A7")) + 
   xlab("Sample size") + 
-  ylab("Difference in log Stein's loss of random experiment to null experiment") + 
-  facet_wrap(~model, nrow = 3)
+  ylab("Difference in log Stein's loss\n specific experiment to null experiment") + 
+  facet_wrap(~model, nrow = 2, scales = "free") + 
+  #theme_classic() 
+  theme_bw() + 
+  theme(legend.position="bottom") + 
+  theme(strip.background =element_rect(fill="white"))
 
-ggsave("./Res/init_200_stepsize_50_steps_40_lambda_kp1_stein/log_stein_diff3_rand_exp.pdf",
-       width = 10, height = 8, scale = 0.8)
+ggsave(fig_file,
+       width = 10, height = 5, scale = 0.8)

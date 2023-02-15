@@ -142,11 +142,11 @@ get_posterior_para_Omega_MGIG <- function(Y, X, B0, phi, psi,lambda, Lambda ){
   XtY <- t(X) %*% Y
   XtX <- t(X) %*% X
   sP <- (XtX) + invLambda
-  invLB <- solve(Lambda, B)
+  invLB <- solve(Lambda, B0)
   
   phi_hat <-phi + t(Y) %*% Y-t(XtY) %*%solve(sP, XtY) 
   phi_hat <-( phi_hat + t(phi_hat))/2
-  psi_hat <- psi+ t(B)%*%invLB-t(invLB)%*%solve(sP,invLB)
+  psi_hat <- psi+ t(B0)%*%invLB-t(invLB)%*%solve(sP,invLB)
   psi_hat <- (psi_hat + t(psi_hat))/2
   list(nu = lambda + nrow(Y)/2, phi = phi_hat, psi = psi_hat)
 }
@@ -184,4 +184,11 @@ KLdiv_MGIG2 <- function(samples, nu1, phi1, psi1,nu2, phi2, psi2){
     term2 <- mean(logfoverg)
     
     term1+term2
+}
+
+stein_loss <- function(X_hat,X){
+  p <- nrow(X)
+  inv_X <- solve(X)
+  XhatinvX <- X_hat %*% inv_X
+  sum(diag(XhatinvX)) - determinant(XhatinvX)$modulus[1] - p
 }
