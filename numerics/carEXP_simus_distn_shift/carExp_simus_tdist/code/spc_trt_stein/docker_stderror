@@ -1,0 +1,41 @@
+Unable to find image 'yshen99/rmgig:0.1.0' locally
+0.1.0: Pulling from yshen99/rmgig
+eaead16dc43b: Pulling fs layer
+030121c2a85f: Pulling fs layer
+dba8866562f3: Pulling fs layer
+8f08d9111ada: Pulling fs layer
+c9e332d0963f: Pulling fs layer
+f49a7b3660e4: Pulling fs layer
+18393806ec10: Pulling fs layer
+0d94b4d87811: Pulling fs layer
+8f08d9111ada: Waiting
+f49a7b3660e4: Waiting
+c9e332d0963f: Waiting
+18393806ec10: Waiting
+0d94b4d87811: Waiting
+030121c2a85f: Verifying Checksum
+030121c2a85f: Download complete
+8f08d9111ada: Verifying Checksum
+8f08d9111ada: Download complete
+eaead16dc43b: Verifying Checksum
+eaead16dc43b: Download complete
+c9e332d0963f: Verifying Checksum
+c9e332d0963f: Download complete
+18393806ec10: Verifying Checksum
+18393806ec10: Download complete
+0d94b4d87811: Verifying Checksum
+0d94b4d87811: Download complete
+f49a7b3660e4: Verifying Checksum
+f49a7b3660e4: Download complete
+dba8866562f3: Verifying Checksum
+dba8866562f3: Download complete
+eaead16dc43b: Pull complete
+030121c2a85f: Pull complete
+dba8866562f3: Pull complete
+8f08d9111ada: Pull complete
+c9e332d0963f: Pull complete
+f49a7b3660e4: Pull complete
+18393806ec10: Pull complete
+0d94b4d87811: Pull complete
+Digest: sha256:3be29258aa6fff4f9cfffc8a258974046dae0fbbeed48c323fc0aaf9d935d9ce
+Status: Downloaded newer image for yshen99/rmgig:0.1.0
